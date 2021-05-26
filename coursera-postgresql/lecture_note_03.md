@@ -35,3 +35,4 @@ explain analyze select content from textfun where content in (
 -- subselect: not good
 -- Nested Loop : 훨씬 오래 걸림
 ```
+## Character Sets
