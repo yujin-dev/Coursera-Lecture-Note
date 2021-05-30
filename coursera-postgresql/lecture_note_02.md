@@ -28,22 +28,130 @@ B-Tree, BRIN, Hash
 GIN, GiST 
 
 
-## Inverted Index
+### Stemmping
 ```sql
-SELECT string_to_array('Hello world', ' ');
-/*
- string_to_array
------------------
- {Hello,world}
-*/
+SELECT DISTINCT id, doc FROM docs AS D
+JOIN docs_gin AS G ON D.id = G.doc_id
+WHERE G.keyword = ANY(string_to_array('Search for Lemons and Neons', ' '));
+
+ id |                         doc
+----+-----------------------------------------------------
+  1 | This is SQL and Python and other fun teaching stuff
+  3 | UMSI also teaches Python and also SQL
+
+```
+The word "and" contributed no real meaning to our query. And it took up valuable space in our GIN index. So we put it on the stop word list
+
+### Inverted Indexes
+보통은 GIN, insert, update가 많으면 Gist가 효율적
+```sql 
+CREATE TABLE docs (id SERIAL, doc TEXT, PRIMARY KEY(id));
+
+CREATE INDEX gin1 ON docs USING gin(string_to_array(doc, ' ')  array_ops);
+
+INSERT INTO docs (doc) VALUES
+('This is SQL and Python and other fun teaching stuff'),
+('More people should learn SQL from UMSI'),
+('UMSI also teaches Python and also SQL');
 ```
 ```sql
-SELECT unnest(string_to_array('Hello world', ' '));-- array(horizontal) to rows( vertical )
-/*
- unnest
---------
- Hello
- world
- */
- ```
- 
+SELECT id, doc FROM docs WHERE '{learn}' <@ string_to_array(doc, ' ');
+
+ id |                  doc
+----+----------------------------------------
+  2 | More people should learn SQL from UMSI
+
+EXPLAIN SELECT id, doc FROM docs WHERE '{learn}' <@ string_to_array(doc, ' '); -- {learn} : text array
+
+                                 QUERY PLAN
+----------------------------------------------------------------------------
+ Bitmap Heap Scan on docs  (cost=12.05..21.53 rows=6 width=32)
+   Recheck Cond: ('{learn}'::text[] <@ string_to_array(doc, ' '::text))
+   ->  Bitmap Index Scan on gin1  (cost=0.00..12.05 rows=6 width=0)
+         Index Cond: ('{learn}'::text[] <@ string_to_array(doc, ' '::text))
+-- Not Seq Scan ! Using Index
+```
+
+## Text Search Functions
+- ts_vector() : order에 따라 distance betweend words
+```sql
+SELECT to_tsvector('english', 'UMSI also teaches Python and also SQL'); -- indexing
+
+                   to_tsvector
+--------------------------------------------------
+ 'also':2,6 'python':4 'sql':7 'teach':3 'umsi':1
+```
+- ts_query() : stemming( using conflation )
+```sql
+SELECT to_tsquery('english', 'teaching');
+
+ to_tsquery
+------------
+ 'teach'
+```
+```sql
+CREATE TABLE docs (id SERIAL, doc TEXT, PRIMARY KEY(id));
+
+CREATE INDEX gin1 ON docs USING gin(to_tsvector('english', doc));
+
+INSERT INTO docs (doc) VALUES
+('This is SQL and Python and other fun teaching stuff'),
+('More people should learn SQL from UMSI'),
+('UMSI also teaches Python and also SQL');
+
+SELECT id, doc FROM docs WHERE
+    to_tsquery('english', 'learn') @@ to_tsvector('english', doc);
+
+ id |                  doc
+----+----------------------------------------
+  2 | More people should learn SQL from UMSI
+
+EXPLAIN SELECT id, doc FROM docs WHERE
+    to_tsquery('english', 'learn') @@ to_tsvector('english', doc);
+
+                                      QUERY PLAN
+--------------------------------------------------------------------------------------
+ Bitmap Heap Scan on docs  (cost=12.05..23.02 rows=6 width=36)
+   Recheck Cond: ('''learn'''::tsquery @@ to_tsvector('english'::regconfig, doc))
+   ->  Bitmap Index Scan on gin1  (cost=0.00..12.05 rows=6 width=0)
+         Index Cond: ('''learn'''::tsquery @@ to_tsvector('english'::regconfig, doc))
+```
+
+## Making NL Inverted Index
+- GIN & GiST Index
+```sql
+CREATE INDEX gin1 ON docs USING gin(to_tsvector('english', doc)); -- GIN
+INSERT INTO docs (doc) VALUES
+ ('This is SQL and Python and other fun teaching stuff'),
+ ('More people should learn SQL from UMSI'),
+ ('UMSI also teaches Python and also SQL');
+
+INSERT INTO docs (doc) SELECT 'Neon ' || generate_series(10000,20000);
+
+SELECT id, doc FROM docs WHERE ('english', 'learn') @@ to_tsvector('english', doc);
+ id |                  doc                   
+----+----------------------------------------
+  2 | More people should learn SQL from UMSI
+(1 row)
+
+EXPLAIN SELECT id, doc FROM docs WHERE to_tsquery('english', 'learn') @@ to_tsvector('english', doc);
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Bitmap Heap Scan on docs  (cost=208.27..268.71 rows=35 width=36)
+   Recheck Cond: ('''learn'''::tsquery @@ to_tsvector('english'::regconfig, doc))
+   ->  Bitmap Index Scan on gin1  (cost=0.00..208.26 rows=35 width=0)
+         Index Cond: ('''learn'''::tsquery @@ to_tsvector('english'::regconfig, doc))
+(4 rows)
+
+drop index gin1;
+CREATE INDEX gist1 ON docs USING gist(to_tsvector('english', doc)); -- GiST                 
+EXPLAIN SELECT id, doc FROM docs WHERE to_tsquery('english', 'learn') @@ to_tsvector('english', doc);
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Bitmap Heap Scan on docs  (cost=4.54..73.90 rows=50 width=15)
+   Recheck Cond: ('''learn'''::tsquery @@ to_tsvector('english'::regconfig, doc))
+   ->  Bitmap Index Scan on gist1  (cost=0.00..4.53 rows=50 width=0)
+         Index Cond: ('''learn'''::tsquery @@ to_tsvector('english'::regconfig, doc))
+(4 rows)
+```
+GiST index is faster than GIN index( lower cost )
