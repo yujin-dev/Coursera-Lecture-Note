@@ -1,10 +1,3 @@
-# https://www.pg4e.com/code/elasticmail.py
-
-# https://www.pg4e.com/code/hidden-dist.py
-# copy hidden-dist.py to hidden.py (if necessary)
-# edit hidden.py and put in your credentials
-
-# http://mbox.dr-chuck.net/sakai.devel/100/101
 
 # python3 elasticmail.py
 # Pulls data from the web and puts it into index
@@ -45,8 +38,6 @@ es = Elasticsearch(
 # In our test world - we only get one index :(
 indexname = secrets['user']
 
-# Start fresh
-# https://elasticsearch-py.readthedocs.io/en/master/api.html#indices
 res = es.indices.delete(index=indexname, ignore=[400, 404])
 print("Dropped index")
 print(res)
@@ -142,7 +133,6 @@ while True:
             if fail > 5 : break
             continue
 
-    # Make the headers into a dictionary
     hdrlines = hdr.split('\n')
     hdrdict = dict()
     for line in hdrlines:
@@ -156,10 +146,8 @@ while True:
         value = tup[1].lower()
         hdrdict[key] = value
 
-    # Override the date field
     hdrdict['date'] = sent_at
 
-    # Reset the fail counter
     fail = 0
     doc = {'offset': start, 'sender': email, 'headers' : hdrdict, 'body': body}
     res = es.index(index=indexname, id=str(start), body=doc)
