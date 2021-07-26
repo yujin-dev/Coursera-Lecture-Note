@@ -7,7 +7,7 @@
 `select 'https://sql4e.com/neon/'`  
 `trunc(random()*100000) || repeat('Lemon', 5) || generate_series(1,5)`
 
-## text functions
+### text functions
 - postgresql.org/docs/functions-string
 
 `select pg_relation_size('textfun), pg_indexes_size('textfun');`  
