@@ -1,10 +1,3 @@
----
-title: "Udemy Elasticsearch - Managing Documents"
-category: "search_engine"
----
-Elasticsearch Udemy 강의( *Complete Guide to Elastticsearch* )를 보면서 Managing documents 파트를 정리한다.
-예시는 [CodeExplained](https://github.com/codingexplained/complete-guide-to-elasticsearch/tree/master/Managing%20Documents)를 참고한다. 
-
 ## Create indices
 ```sh
 PUT /products
@@ -15,7 +8,6 @@ PUT /products
   }
 }
 ```
->>>
 ```sh
 {
   "acknowledged" : true,
@@ -450,12 +442,14 @@ POST /products/_delete_by_query
 }
 ```
 ## Batch processing
-bulk 데이터를 처리할 때 사용하는 API가 있다.
+대용량의 bulk 데이터를 배치로 처리하거나 한번에 업데이트할 때 사용하는 API가 있다. NDJSON이라는 형식을 적용하는데 아래와 같다.
+
 ### Indexing
+`index`는 없으면 새로 생성되고 기존에 존재하면 replace되지만 `create`는 해당 index가 이미 있는 경우 오류를 발생한다. 
 ```sh
 POST /_bulk
-{ "index": { "_index": "products", "_id": 200 } }
-{ "name": "Espresso Machine", "price": 199, "in_stock": 5 }
+{ "index": { "_index": "products", "_id": 200 } } # meta data
+{ "name": "Espresso Machine", "price": 199, "in_stock": 5 } # source
 { "create": { "_index": "products", "_id": 201 } }
 { "name": "Milk Frother", "price": 149, "in_stock": 14 }
 ```
@@ -587,6 +581,11 @@ POST /_bulk
 ```
 
 ## Importing data with cURL
-```console
+HTTP 메서드로 elasticsearch 서버에 데이터를 전송할 수 있는데 다음과 같은 조건이 필요하다.
+- `Content-Type`: `application/x-ndjson` 형식으로 지정
+- 마지막 line은 new line으로 한 줄 비워줘야 한다.
+
+실패한 action이 다른 actions에 영향을 주진 않는다.
+```console 
 $ curl -H "Content-Type: application/x-ndjson" -XPOST http://localhost:9200/products/_bulk --data-binary "@products-bulk.json"
 ```
