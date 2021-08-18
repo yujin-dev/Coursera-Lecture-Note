@@ -192,6 +192,7 @@ GET /recipe/_search
 ...
 ```
 ## Debugging `bool` queries with named queries
+각 쿼리에 이름을 설정하여 쿼리 매칭이 되었는지 확인할 수 있다.
 ```sh
 GET /recipe/_search
 {
@@ -241,8 +242,33 @@ GET /recipe/_search
   }
 }
 ```
+아래와 같이 2개의 결과가 반환되었는데 각각 어떤 쿼리에 매칭되는지 보여준다.
+```sh
+  "hits" : {
+    "total" : {
+      "value" : 2,
+      "relation" : "eq"
+    },
+  ...
+```
+score가 더 높은 documents는 `parsley_should`가 포함되었음을 알 수 있다. 
+```sh
+    "matched_queries" : [
+      "prep_time_filter",
+      "parmesan_must",
+      "parsley_should"
+    ]
+    ...
+    "matched_queries" : [
+    "prep_time_filter",
+    "parmesan_must"
+  ]
+```
+
+
 ## How `match` query works
-### 2 queries below are equivalent
+아래 쿼리는 2가지 `term` 쿼리를 `should`로 엮은 compound 쿼리와 동일하다.  
+```sh
 GET /recipe/_search
 {
   "query": {
@@ -251,6 +277,17 @@ GET /recipe/_search
     }
   }
 }
+```
+```sh
+  "hits" : {
+    "total" : {
+      "value" : 9,
+      "relation" : "eq"
+    },
+    "max_score" : 4.548811,
+```
+따라서 아래의 쿼리와 동일한데 같은 결과를 반환함을 알 수 있다.
+```sh
 GET /recipe/_search
 {
   "query": {
@@ -270,8 +307,17 @@ GET /recipe/_search
     }
   }
 }
-
-### equivalent
+```
+```sh
+  "hits" : {
+    "total" : {
+      "value" : 9,
+      "relation" : "eq"
+    },
+    "max_score" : 4.548811,
+```
+다음 쿼리는 정확한 단어를 포함하는지에 대한 여부로 `term` 쿼리를 `must` 로 엮은 compound 쿼리로 나타낼 수 있다. 
+```sh
 GET /recipe/_search
 {
   "query": {
@@ -283,7 +329,17 @@ GET /recipe/_search
     }
   }
 }
-
+```
+```sh
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 4.548811,
+```
+즉, 아래와 같이
+```sh
 GET /recipe/_search
 {
   "query": {
@@ -303,3 +359,14 @@ GET /recipe/_search
     }
   }
 }
+```
+```sh
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 4.548811,
+```
+
+여기서 `match`쿼리르 사용하는 경우 analyze가 적용되지만 `term`쿼리는 raw 값 자체로 비교하기에 대문자가 포함된 단어를 대상으로 하면 서로 다른 결과를 반환한다.
