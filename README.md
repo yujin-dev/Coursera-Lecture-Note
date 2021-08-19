@@ -1,7 +1,7 @@
 # Lecture Note
 
 ## Coursera
-https://github.com/yujin-dev/Elasticseach-Tutorial/blob/master/coursera-note
+https://github.com/yujin-dev/Elasticsearch-Tutorial/tree/master/coursera-note
 
 ## Udemy
-https://github.com/yujin-dev/Elasticseach-Tutorial/blob/master/udemy-note
+https://github.com/yujin-dev/Elasticsearch-Tutorial/tree/master/udemy-note
