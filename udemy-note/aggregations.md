@@ -193,6 +193,7 @@ GET /order/_search
 ```
 
 ### Including `20` terms instead of the default `10`
+```sh
 GET /order/_search
 {
   "size": 0, 
@@ -205,8 +206,9 @@ GET /order/_search
     }
   }
 }
-
+```
 ### Aggregating documents with missing field
+```sh
 GET /order/_search
 {
   "size": 0,
@@ -220,8 +222,9 @@ GET /order/_search
     }
   }
 }
-
+```
 ### Changing the mininum document count for a bucket to be created
+```sh
 GET /order/_search
 {
   "size": 0,
@@ -236,8 +239,9 @@ GET /order/_search
     }
   }
 }
-
+```
 ### Ordering the buckets
+```sh
 GET /order/_search
 {
   "size": 0,
@@ -255,3 +259,4 @@ GET /order/_search
     }
   }
 }
+```
