@@ -192,7 +192,7 @@ GET /recipe/_search
 ...
 ```
 ## Debugging `bool` queries with named queries
-각 쿼리에 이름을 설정하여 쿼리 매칭이 되었는지 확인할 수 있다.
+ 각 쿼리에 이름을 설정하여 쿼리 매칭이 되었는지 확인할 수 있다.
 ```sh
 GET /recipe/_search
 {
