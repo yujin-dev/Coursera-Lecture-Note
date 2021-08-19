@@ -1,9 +1,7 @@
 # Lecture Note
 
 ## Coursera
-- Spark : https://github.com/yujin-dev/Lecture-Note/tree/master/Spark
-- PostgreSQL : https://github.com/yujin-dev/Lecture-Note/blob/master/PostgreSQL/Coursera.md
-- Elasticsearch : https://github.com/yujin-dev/Lecture-Note/blob/master/Elasticsearch/coursera
+https://github.com/yujin-dev/Elasticseach-Tutorial/blob/master/coursera-note
 
 ## Udemy
-- Elasticsearch : https://github.com/yujin-dev/Lecture-Note/blob/master/Elasticsearch/udemy
+https://github.com/yujin-dev/Elasticseach-Tutorial/blob/master/udemy-note

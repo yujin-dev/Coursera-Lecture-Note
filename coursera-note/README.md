@@ -1,3 +1,6 @@
+# Coursera Lecture Note
+https://www.coursera.org/learn/intermediate-postgresql 4 주차
+
 ## ELK 개요
 - REST API( RPC pattern )
 - DynomicDB
