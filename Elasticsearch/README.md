@@ -1,4 +1,4 @@
-# Udemy Lecture Note
+# Elasticsearch Lecture
 https://www.udemy.com/course/ELK-complete-guide 를 듣고 정리한 공간
 
 ### Notes 
